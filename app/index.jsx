@@ -1,147 +1,130 @@
 import { Link } from "expo-router";
 import { Image, ScrollView, Text, View, Pressable } from "react-native";
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
+import { getImageSource } from "../utils/imageLoader";
 
-const Card = ({ title, subtitle, href, image, gradient }) => (
-  <Link href={href} asChild>
-    <Pressable
-      style={{
-        borderRadius: 24,
-        overflow: "hidden",
-        marginBottom: 20,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        elevation: 8,
-      }}
-    >
-      <View
-        style={{
-          borderRadius: 24,
-          overflow: "hidden",
-          borderWidth: 2,
-          borderColor: gradient.border || "#fff",
-          backgroundColor: "#fff",
-        }}
-      >
-        <View style={{ position: "relative", height: 200 }}>
+// Store image with multiple fallback paths
+const getStoreImageSource = () => {
+  // Try require first (works in React Native)
+  try {
+    const required = require("../assets/images/store.jpg");
+    if (required && required.uri) return required;
+    if (required && required.default) return { uri: required.default };
+  } catch (e) {
+    // require failed, use URI paths
+  }
+  
+  // For web, try multiple possible paths (public folder first)
+  const paths = [
+    "/assets/images/store.jpg",  // Public folder path
+    "/images/store.jpg",
+    "assets/images/store.jpg",
+    "./assets/images/store.jpg"
+  ];
+  
+  // Return first path, Image component will handle errors
+  return { uri: paths[0] };
+};
+
+const storeImageSource = getStoreImageSource();
+
+// Water image source - try multiple methods
+const getWaterImageSource = () => {
+  // Method 1: Try require (works if Metro serves it)
+  try {
+    const required = require("../assets/images/water-5245722_1280.jpg");
+    console.log("✅ Water image loaded via require:", required);
+    return required;
+  } catch (e) {
+    console.log("⚠️ Require failed, trying URI paths:", e.message);
+  }
+  
+  // Method 2: Try multiple URI paths for web
+  const paths = [
+    "/assets/images/water-5245722_1280.jpg",
+    "assets/images/water-5245722_1280.jpg",
+    "./assets/images/water-5245722_1280.jpg",
+    "http://localhost:8081/assets/images/water-5245722_1280.jpg"
+  ];
+  
+  console.log("🌐 Trying URI path:", paths[0]);
+  return { uri: paths[0] };
+};
+
+const waterImageSource = getWaterImageSource();
+
+// Beverage image source - try multiple methods
+const getBeverageImageSource = () => {
+  // Method 1: Try require (works if Metro serves it)
+  try {
+    const required = require("../assets/images/beverages-3105631_1280.jpg");
+    console.log("✅ Beverage image loaded via require:", required);
+    return required;
+  } catch (e) {
+    console.log("⚠️ Require failed, trying URI paths:", e.message);
+  }
+  
+  // Method 2: Try multiple URI paths for web
+  const paths = [
+    "/assets/images/beverages-3105631_1280.jpg",
+    "assets/images/beverages-3105631_1280.jpg",
+    "./assets/images/beverages-3105631_1280.jpg",
+    "http://localhost:8081/assets/images/beverages-3105631_1280.jpg"
+  ];
+  
+  console.log("🌐 Trying URI path:", paths[0]);
+  return { uri: paths[0] };
+};
+
+const beverageImageSource = getBeverageImageSource();
+
+// Telephone/Contact image source - try multiple methods
+const getTelephoneImageSource = () => {
+  // Method 1: Try require (works if Metro serves it)
+  try {
+    const required = require("../assets/images/telephone-612061_1280.jpg");
+    console.log("✅ Telephone image loaded via require:", required);
+    return required;
+  } catch (e) {
+    console.log("⚠️ Require failed, trying URI paths:", e.message);
+  }
+  
+  // Method 2: Try multiple URI paths for web
+  const paths = [
+    "/assets/images/telephone-612061_1280.jpg",
+    "assets/images/telephone-612061_1280.jpg",
+    "./assets/images/telephone-612061_1280.jpg",
+    "http://localhost:8081/assets/images/telephone-612061_1280.jpg"
+  ];
+  
+  console.log("🌐 Trying URI path:", paths[0]);
+  return { uri: paths[0] };
+};
+
+const telephoneImageSource = getTelephoneImageSource();
+
+const CategoryCard = ({ title, subtitle, href, image }) => {
+  // Handle both string paths and image source objects
+  const imageSource = typeof image === 'object' && image !== null 
+    ? image 
+    : getImageSource(image);
+    
+  return (
+    <Link href={href} asChild>
+      <Pressable style={{ marginBottom: 24 }}>
+        <View style={{ position: "relative", borderRadius: 28, overflow: "hidden", height: 220 }}>
           <Image
-            source={{ uri: image }}
+            source={imageSource}
             style={{ width: "100%", height: "100%" }}
             resizeMode="cover"
-          />
-          <View
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: "60%",
-              backgroundColor: gradient.start,
-              opacity: 0.9,
+            onError={(error) => {
+              console.error("Failed to load category image:", image, error);
+              console.log("Image source was:", imageSource);
+            }}
+            onLoad={() => {
+              console.log("Category image loaded successfully:", image);
             }}
           />
-          <View
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: 20,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 26,
-                fontWeight: "800",
-                color: "#fff",
-                marginBottom: 6,
-                textShadowColor: "rgba(0,0,0,0.3)",
-                textShadowOffset: { width: 0, height: 2 },
-                textShadowRadius: 4,
-              }}
-            >
-              {title}
-            </Text>
-            <Text
-              style={{
-                fontSize: 14,
-                color: "#fff",
-                opacity: 0.95,
-                fontWeight: "500",
-                textShadowColor: "rgba(0,0,0,0.2)",
-                textShadowOffset: { width: 0, height: 1 },
-                textShadowRadius: 3,
-              }}
-            >
-              {subtitle}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  </Link>
-);
-
-const FeatureCard = ({ icon, title, description, color }) => (
-  <View
-    style={{
-      borderRadius: 20,
-      padding: 20,
-      backgroundColor: color.bg,
-      borderWidth: 2,
-      borderColor: color.border,
-      marginBottom: 16,
-      shadowColor: color.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
-    }}
-  >
-    <Text
-      style={{
-        fontSize: 22,
-        fontWeight: "800",
-        marginBottom: 8,
-        color: color.text,
-      }}
-    >
-      {icon} {title}
-    </Text>
-    <Text style={{ fontSize: 14, color: color.desc, lineHeight: 20 }}>
-      {description}
-    </Text>
-  </View>
-);
-
-export default function HomeScreen() {
-  return (
-    <ScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-      style={{ backgroundColor: "#f8fafc" }}
-    >
-      {/* Hero Section with Gradient */}
-      <View
-        style={{
-          borderRadius: 28,
-          overflow: "hidden",
-          marginBottom: 24,
-          shadowColor: "#2563eb",
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.2,
-          shadowRadius: 20,
-          elevation: 12,
-        }}
-      >
-        <Image
-          source={{
-            uri:
-              "https://images.unsplash.com/photo-1540420773420-3366772f4999?q=80&w=1600&auto=format&fit=crop",
-          }}
-          style={{ width: "100%", height: 280 }}
-          resizeMode="cover"
-        />
         <View
           style={{
             position: "absolute",
@@ -149,18 +132,76 @@ export default function HomeScreen() {
             left: 0,
             right: 0,
             padding: 24,
-            backgroundColor: "rgba(37,99,235,0.9)",
+            backgroundColor: "rgba(15,23,42,0.5)",
           }}
         >
           <Text
             style={{
-              fontSize: 32,
+              fontSize: 26,
+              fontWeight: "800",
+              color: "#ffffff",
+              marginBottom: 6,
+              letterSpacing: -0.5,
+            }}
+          >
+            {title}
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              color: "#e2e8f0",
+              lineHeight: 20,
+              fontWeight: "500",
+            }}
+          >
+            {subtitle}
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  </Link>
+  );
+};
+
+export default function HomeScreen() {
+  useGlobalSearch();
+
+  return (
+    <ScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      style={{ backgroundColor: "#f9fafb" }}
+    >
+      {/* Hero Section - Store Image */}
+      <View style={{ position: "relative", borderRadius: 32, overflow: "hidden", marginBottom: 32, height: 320, backgroundColor: "#1e293b" }}>
+        <Image
+          source={storeImageSource}
+          style={{ width: "100%", height: "100%" }}
+          resizeMode="cover"
+          onError={(error) => {
+            console.error("Failed to load store image:", error.nativeEvent.error);
+            console.log("Tried path:", storeImageSource);
+          }}
+          onLoad={() => {
+            console.log("Store image loaded successfully!");
+          }}
+        />
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: 32,
+            backgroundColor: "rgba(15,23,42,0.5)",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 36,
               fontWeight: "900",
-              color: "#fff",
-              marginBottom: 10,
-              textShadowColor: "rgba(0,0,0,0.4)",
-              textShadowOffset: { width: 0, height: 2 },
-              textShadowRadius: 6,
+              color: "#ffffff",
+              marginBottom: 12,
+              letterSpacing: -1,
             }}
           >
             Saf Su, Ferahlatan İçecekler
@@ -168,12 +209,9 @@ export default function HomeScreen() {
           <Text
             style={{
               fontSize: 16,
-              color: "#fff",
-              opacity: 0.95,
-              lineHeight: 22,
-              textShadowColor: "rgba(0,0,0,0.3)",
-              textShadowOffset: { width: 0, height: 1 },
-              textShadowRadius: 4,
+              color: "#cbd5e1",
+              lineHeight: 24,
+              fontWeight: "500",
             }}
           >
             İhtiyacınız olan su ve içecekleri kolayca keşfedin. Uygun fiyat, hızlı teslimat ve güler yüzlü hizmet.
@@ -181,69 +219,49 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Category Cards */}
-      <Card
-        title="Su"
+      {/* Category Cards - Minimal Design */}
+      <CategoryCard
+        title="Su Ürünleri"
         subtitle="Damacana, şişe ve maden suyu seçenekleri"
         href="/water"
-        image="https://images.unsplash.com/photo-1523362628745-0c100150b504?q=80&w=1600&auto=format&fit=crop"
-        gradient={{
-          start: "rgba(59,130,246,0.95)",
-          end: "rgba(37,99,235,0.8)",
-          border: "#3b82f6",
-        }}
+        image={waterImageSource}
       />
 
-      <Card
+      <CategoryCard
         title="İçecekler"
         subtitle="Gazoz, meyve suyu, soğuk çay ve daha fazlası"
         href="/beverages"
-        image="https://images.unsplash.com/photo-1553729784-e91953dec042?q=80&w=1600&auto=format&fit=crop"
-        gradient={{
-          start: "rgba(236,72,153,0.95)",
-          end: "rgba(219,39,119,0.8)",
-          border: "#ec4899",
-        }}
+        image={beverageImageSource}
       />
 
-      <Card
+      <CategoryCard
         title="İletişim"
-        subtitle="Adres, çalışma saatleri ve WhatsApp sipariş"
+        subtitle="Adres, çalışma saatleri ve iletişim bilgileri"
         href="/about"
-        image="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1600&auto=format&fit=crop"
-        gradient={{
-          start: "rgba(34,197,94,0.95)",
-          end: "rgba(22,163,74,0.8)",
-          border: "#22c55e",
-        }}
+        image={telephoneImageSource}
       />
 
-      {/* Feature Cards */}
-      <FeatureCard
-        icon="🚚"
-        title="Teslimat Bilgileri"
-        description="• Aynı gün teslimat (18:00'e kadar verilen siparişlerde)\n• Minimum sipariş tutarı: 150 TL\n• Bölge: Şehir merkezi ve yakın mahalleler"
-        color={{
-          bg: "#eff6ff",
-          border: "#bfdbfe",
-          text: "#1e40af",
-          desc: "#1e3a8a",
-          shadow: "#3b82f6",
-        }}
-      />
-
-      <FeatureCard
-        icon="⭐"
-        title="Neden Buzdağı Plus?"
-        description="• Hızlı teslimat • Geniş ürün yelpazesi • Güvenilir hizmet • Müşteri memnuniyeti odaklı yaklaşım"
-        color={{
-          bg: "#fef3c7",
-          border: "#fde68a",
-          text: "#92400e",
-          desc: "#78350f",
-          shadow: "#f59e0b",
-        }}
-      />
+      {/* Feature Cards - Side by Side */}
+      <View style={{ flexDirection: "row", marginTop: 8 }}>
+        <View style={{ flex: 1, padding: 20, backgroundColor: "#f8fafc", borderRadius: 20, marginRight: 6 }}>
+          <Text style={{ fontSize: 28, marginBottom: 12 }}>🚚</Text>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a", marginBottom: 8, letterSpacing: -0.3 }}>
+            Teslimat Bilgileri
+          </Text>
+          <Text style={{ fontSize: 14, color: "#475569", lineHeight: 20, fontWeight: "500" }}>
+            Aynı gün teslimat • Min. 150 TL • Şehir merkezi
+          </Text>
+        </View>
+        <View style={{ flex: 1, padding: 20, backgroundColor: "#f8fafc", borderRadius: 20, marginLeft: 6 }}>
+          <Text style={{ fontSize: 28, marginBottom: 12 }}>⭐</Text>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a", marginBottom: 8, letterSpacing: -0.3 }}>
+            Neden Buzdağı Plus?
+          </Text>
+          <Text style={{ fontSize: 14, color: "#475569", lineHeight: 20, fontWeight: "500" }}>
+            Hızlı teslimat • Geniş ürün yelpazesi • Güvenilir hizmet
+          </Text>
+        </View>
+      </View>
     </ScrollView>
   );
 }

@@ -3,8 +3,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-// Add xlsx to asset extensions so Metro can serve Excel files
-config.resolver.assetExts.push('xlsx');
+// Add xlsx and image extensions to asset extensions
+config.resolver.assetExts.push('xlsx', 'jpg', 'jpeg', 'png', 'webp');
 
 module.exports = config;
+
 

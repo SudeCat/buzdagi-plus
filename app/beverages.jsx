@@ -1,10 +1,14 @@
 import { Image, FlatList, Text, View, Dimensions, ActivityIndicator } from "react-native";
 import { useState, useEffect } from "react";
+import { useRouter } from "expo-router";
 import * as XLSX from "xlsx";
 import { getImageSource } from "../utils/imageLoader";
+import { useSearch } from "../contexts/SearchContext";
+import { useGlobalSearch } from "../hooks/useGlobalSearch";
+import { searchProducts } from "../utils/searchHelper";
 
 const { width } = Dimensions.get("window");
-const itemWidth = (width - 52) / 2;
+const itemWidth = (width - 56) / 2;
 
 const ItemCard = ({ item }) => {
   if (!item || !item.id) return null;
@@ -12,26 +16,19 @@ const ItemCard = ({ item }) => {
   return (
     <View
       style={{
-        borderRadius: 20,
-        overflow: "hidden",
-        backgroundColor: "#fff",
-        margin: 10,
         width: itemWidth,
-        shadowColor: "#ec4899",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 6,
-        borderWidth: 2,
-        borderColor: "#fce7f3",
+        margin: 6,
       }}
     >
       <View
         style={{
           width: "100%",
-          height: 140,
-          backgroundColor: "#fce7f3",
+          height: 160,
+          borderRadius: 24,
+          overflow: "hidden",
+          backgroundColor: "#f1f5f9",
           position: "relative",
+          marginBottom: 12,
         }}
       >
         <Image
@@ -42,39 +39,43 @@ const ItemCard = ({ item }) => {
         <View
           style={{
             position: "absolute",
-            top: 8,
-            right: 8,
-            backgroundColor: "rgba(236,72,153,0.9)",
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-            borderRadius: 12,
+            top: 12,
+            right: 12,
+            backgroundColor: "#0f172a",
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 20,
           }}
         >
-          <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>
+          <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>
             İÇECEK
           </Text>
         </View>
       </View>
-      <View style={{ padding: 14 }}>
-        <Text
-          style={{
-            fontWeight: "700",
-            fontSize: 14,
-            color: "#be185d",
-            lineHeight: 20,
-          }}
-          numberOfLines={2}
-        >
-          {item?.name || "Ürün Adı"}
-        </Text>
-      </View>
+      <Text
+        style={{
+          fontWeight: "700",
+          fontSize: 15,
+          color: "#0f172a",
+          lineHeight: 22,
+          letterSpacing: -0.3,
+          paddingHorizontal: 4,
+        }}
+        numberOfLines={2}
+      >
+        {item?.name || "Ürün Adı"}
+      </Text>
     </View>
   );
 };
 
 export default function BeveragesScreen() {
-  const [items, setItems] = useState([]);
+  const [allItems, setAllItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { searchQuery } = useSearch();
+  const router = useRouter();
+  
+  useGlobalSearch();
 
   useEffect(() => {
     const xlsxPaths = [
@@ -97,15 +98,13 @@ export default function BeveragesScreen() {
     const tryLoadXLSX = (pathIndex) => {
       if (pathIndex >= xlsxPaths.length) {
         console.warn("Could not load XLSX from any path, using empty array");
-        setItems([]);
+        setAllItems([]);
         setLoading(false);
         return;
       }
 
-      console.log(`Trying to load products.xlsx from: ${xlsxPaths[pathIndex]}`);
       fetch(xlsxPaths[pathIndex])
         .then(async (response) => {
-          console.log(`Response status: ${response.status} for ${xlsxPaths[pathIndex]}`);
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }
@@ -116,9 +115,6 @@ export default function BeveragesScreen() {
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-          
-          console.log("Raw Excel data:", jsonData);
-          console.log("Total rows:", jsonData.length);
 
           const mapped = jsonData.map((row) => {
             const categoryRaw = row.category ?? row.Category ?? row.type ?? row.Type ?? row.kategori ?? row.Kategori;
@@ -130,10 +126,6 @@ export default function BeveragesScreen() {
             };
           });
 
-          console.log("Mapped items:", mapped);
-          const allCategories = [...new Set(mapped.map(r => r.category))];
-          console.log("Categories found:", allCategories);
-
           const beverageItems = mapped.filter((r) => {
             const cat = r.category;
             return cat === "beverages" || 
@@ -141,7 +133,6 @@ export default function BeveragesScreen() {
           });
           
           if (beverageItems.length === 0) {
-            console.log("Trying fallback filter with raw category values...");
             const fallbackItems = jsonData.filter((row) => {
               const rawCategory = String(row.category ?? row.Category ?? "").toLowerCase().trim();
               return rawCategory === "beverage" || rawCategory === "beverages" || rawCategory.includes("beverage");
@@ -154,20 +145,13 @@ export default function BeveragesScreen() {
               };
             });
             if (fallbackItems.length > 0) {
-              console.log("Found items with fallback filter:", fallbackItems.length);
-              setItems(fallbackItems);
+              setAllItems(fallbackItems);
               setLoading(false);
               return;
             }
           }
-          
-          console.log("Beverages filtered:", beverageItems.length, "items");
-          if (beverageItems.length === 0 && mapped.length > 0) {
-            console.warn("⚠️ No beverages found. Your Excel file has these categories:", allCategories);
-            console.warn("💡 Make sure your category column contains: 'beverages', 'beverage', 'içecek', or 'drink'");
-          }
 
-          setItems(beverageItems);
+          setAllItems(beverageItems);
           setLoading(false);
         })
         .catch((error) => {
@@ -182,47 +166,63 @@ export default function BeveragesScreen() {
     tryLoadXLSX(0);
   }, []);
 
+  // Smart search filtering
+  const filteredItems = searchQuery && searchQuery.trim().length > 0
+    ? searchProducts(allItems, searchQuery)
+    : allItems;
+
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f8fafc" }}>
-        <ActivityIndicator size="large" color="#ec4899" />
-        <Text style={{ marginTop: 16, color: "#64748b", fontSize: 14 }}>Yükleniyor...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f9fafb" }}>
+        <ActivityIndicator size="large" color="#111827" />
+        <Text style={{ marginTop: 16, color: "#6b7280", fontSize: 14 }}>Yükleniyor...</Text>
       </View>
     );
   }
 
-  if (items.length === 0) {
+  if (filteredItems.length === 0) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20, backgroundColor: "#f8fafc" }}>
-        <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 8, textAlign: "center", color: "#1e293b" }}>
-          İçecek bulunamadı
-        </Text>
-        <Text style={{ fontSize: 14, color: "#64748b", textAlign: "center", marginBottom: 4 }}>
-          products.xlsx dosyasında içecek kategorisi olan ürünler olmalı
-        </Text>
-        <Text style={{ fontSize: 12, color: "#94a3b8", textAlign: "center", marginTop: 4 }}>
-          Tarayıcı konsolunu (F12) kontrol edin
-        </Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20, backgroundColor: "#f9fafb" }}>
+        {searchQuery ? (
+          <>
+            <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12, textAlign: "center", color: "#111827" }}>
+              Aradığınız ürün bulunamadı
+            </Text>
+            <Text style={{ fontSize: 15, color: "#6b7280", textAlign: "center", lineHeight: 22 }}>
+              "{searchQuery}" için sonuç bulunamadı. Farklı bir arama terimi deneyebilirsiniz.
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 8, textAlign: "center", color: "#111827" }}>
+              İçecek bulunamadı
+            </Text>
+            <Text style={{ fontSize: 14, color: "#6b7280", textAlign: "center" }}>
+              products.xlsx dosyasında içecek kategorisi olan ürünler olmalı
+            </Text>
+          </>
+        )}
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f8fafc" }}>
-      <View style={{ padding: 16, backgroundColor: "#fff", borderBottomWidth: 2, borderBottomColor: "#fce7f3" }}>
-        <Text style={{ fontSize: 24, fontWeight: "800", color: "#be185d" }}>
-          İçecekler ({items.length})
+    <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
+      <View style={{ padding: 20, paddingTop: 24, paddingBottom: 16 }}>
+        <Text style={{ fontSize: 32, fontWeight: "800", color: "#0f172a", marginBottom: 8, letterSpacing: -1 }}>
+          İçecekler
         </Text>
-        <Text style={{ fontSize: 14, color: "#64748b", marginTop: 4 }}>
-          Soğuk ve ferahlatıcı içecek seçenekleri
+        <Text style={{ fontSize: 15, color: "#64748b", fontWeight: "600" }}>
+          {searchQuery ? `${filteredItems.length} sonuç` : `${filteredItems.length} ürün`}
         </Text>
       </View>
       <FlatList
-        contentContainerStyle={{ padding: 16 }}
-        data={items}
+        contentContainerStyle={{ padding: 14, paddingTop: 0, paddingBottom: 24 }}
+        data={filteredItems}
         keyExtractor={(item) => item.id}
         numColumns={2}
         renderItem={({ item }) => <ItemCard item={item} />}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
