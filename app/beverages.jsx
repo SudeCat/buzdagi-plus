@@ -8,7 +8,11 @@ import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { searchProducts } from "../utils/searchHelper";
 
 const { width } = Dimensions.get("window");
-const itemWidth = (width - 56) / 2;
+const isMobile = width < 768;
+const isSmallMobile = width < 400;
+// Responsive item width: 2 columns on desktop, 2 columns on tablet, 1 column on very small mobile
+const numColumns = isSmallMobile ? 1 : 2;
+const itemWidth = isSmallMobile ? width - 32 : (width - (isMobile ? 40 : 56)) / numColumns;
 
 const ItemCard = ({ item }) => {
   if (!item || !item.id) return null;
@@ -23,12 +27,12 @@ const ItemCard = ({ item }) => {
       <View
         style={{
           width: "100%",
-          height: 160,
-          borderRadius: 24,
+          height: isMobile ? (isSmallMobile ? 140 : 150) : 160,
+          borderRadius: isMobile ? 20 : 24,
           overflow: "hidden",
           backgroundColor: "#f1f5f9",
           position: "relative",
-          marginBottom: 12,
+          marginBottom: isMobile ? 10 : 12,
         }}
       >
         <Image
@@ -39,15 +43,20 @@ const ItemCard = ({ item }) => {
         <View
           style={{
             position: "absolute",
-            top: 12,
-            right: 12,
+            top: isMobile ? 8 : 12,
+            right: isMobile ? 8 : 12,
             backgroundColor: "#0f172a",
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 20,
+            paddingHorizontal: isMobile ? (isSmallMobile ? 8 : 10) : 12,
+            paddingVertical: isMobile ? 4 : 6,
+            borderRadius: isMobile ? 16 : 20,
           }}
         >
-          <Text style={{ color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 1 }}>
+          <Text style={{ 
+            color: "#fff", 
+            fontSize: isMobile ? (isSmallMobile ? 9 : 10) : 11, 
+            fontWeight: "800", 
+            letterSpacing: 1 
+          }}>
             İÇECEK
           </Text>
         </View>
@@ -55,9 +64,9 @@ const ItemCard = ({ item }) => {
       <Text
         style={{
           fontWeight: "700",
-          fontSize: 15,
+          fontSize: isMobile ? (isSmallMobile ? 13 : 14) : 15,
           color: "#0f172a",
-          lineHeight: 22,
+          lineHeight: isMobile ? 20 : 22,
           letterSpacing: -0.3,
           paddingHorizontal: 4,
         }}
@@ -174,30 +183,63 @@ export default function BeveragesScreen() {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f9fafb" }}>
-        <ActivityIndicator size="large" color="#111827" />
-        <Text style={{ marginTop: 16, color: "#6b7280", fontSize: 14 }}>Yükleniyor...</Text>
+        <ActivityIndicator size={isMobile ? "small" : "large"} color="#111827" />
+        <Text style={{ 
+          marginTop: isMobile ? 12 : 16, 
+          color: "#6b7280", 
+          fontSize: isMobile ? (isSmallMobile ? 12 : 13) : 14 
+        }}>
+          Yükleniyor...
+        </Text>
       </View>
     );
   }
 
   if (filteredItems.length === 0) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20, backgroundColor: "#f9fafb" }}>
+      <View style={{ 
+        flex: 1, 
+        justifyContent: "center", 
+        alignItems: "center", 
+        padding: isMobile ? (isSmallMobile ? 16 : 18) : 20, 
+        backgroundColor: "#f9fafb" 
+      }}>
         {searchQuery ? (
           <>
-            <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12, textAlign: "center", color: "#111827" }}>
+            <Text style={{ 
+              fontSize: isMobile ? (isSmallMobile ? 18 : 19) : 20, 
+              fontWeight: "600", 
+              marginBottom: isMobile ? 10 : 12, 
+              textAlign: "center", 
+              color: "#111827" 
+            }}>
               Aradığınız ürün bulunamadı
             </Text>
-            <Text style={{ fontSize: 15, color: "#6b7280", textAlign: "center", lineHeight: 22 }}>
+            <Text style={{ 
+              fontSize: isMobile ? (isSmallMobile ? 13 : 14) : 15, 
+              color: "#6b7280", 
+              textAlign: "center", 
+              lineHeight: isMobile ? 20 : 22 
+            }}>
               "{searchQuery}" için sonuç bulunamadı. Farklı bir arama terimi deneyebilirsiniz.
             </Text>
           </>
         ) : (
           <>
-            <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 8, textAlign: "center", color: "#111827" }}>
+            <Text style={{ 
+              fontSize: isMobile ? (isSmallMobile ? 18 : 19) : 20, 
+              fontWeight: "600", 
+              marginBottom: isMobile ? 6 : 8, 
+              textAlign: "center", 
+              color: "#111827" 
+            }}>
               İçecek bulunamadı
             </Text>
-            <Text style={{ fontSize: 14, color: "#6b7280", textAlign: "center" }}>
+            <Text style={{ 
+              fontSize: isMobile ? (isSmallMobile ? 12 : 13) : 14, 
+              color: "#6b7280", 
+              textAlign: "center" 
+            }}>
               products.xlsx dosyasında içecek kategorisi olan ürünler olmalı
             </Text>
           </>
@@ -208,19 +250,37 @@ export default function BeveragesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#ffffff" }}>
-      <View style={{ padding: 20, paddingTop: 24, paddingBottom: 16 }}>
-        <Text style={{ fontSize: 32, fontWeight: "800", color: "#0f172a", marginBottom: 8, letterSpacing: -1 }}>
+      <View style={{ 
+        padding: isMobile ? (isSmallMobile ? 12 : 16) : 20, 
+        paddingTop: isMobile ? 20 : 24, 
+        paddingBottom: isMobile ? 12 : 16 
+      }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 24 : 28) : 32, 
+          fontWeight: "800", 
+          color: "#0f172a", 
+          marginBottom: isMobile ? 6 : 8, 
+          letterSpacing: -1 
+        }}>
           İçecekler
         </Text>
-        <Text style={{ fontSize: 15, color: "#64748b", fontWeight: "600" }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 13 : 14) : 15, 
+          color: "#64748b", 
+          fontWeight: "600" 
+        }}>
           {searchQuery ? `${filteredItems.length} sonuç` : `${filteredItems.length} ürün`}
         </Text>
       </View>
       <FlatList
-        contentContainerStyle={{ padding: 14, paddingTop: 0, paddingBottom: 24 }}
+        contentContainerStyle={{ 
+          padding: isMobile ? (isSmallMobile ? 8 : 10) : 14, 
+          paddingTop: 0, 
+          paddingBottom: isMobile ? 20 : 24 
+        }}
         data={filteredItems}
         keyExtractor={(item) => item.id}
-        numColumns={2}
+        numColumns={numColumns}
         renderItem={({ item }) => <ItemCard item={item} />}
         showsVerticalScrollIndicator={false}
       />

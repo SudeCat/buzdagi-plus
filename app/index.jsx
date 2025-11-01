@@ -1,7 +1,12 @@
 import { Link } from "expo-router";
-import { Image, ScrollView, Text, View, Pressable } from "react-native";
+import { Image, ScrollView, Text, View, Pressable, Animated, Dimensions } from "react-native";
 import { useGlobalSearch } from "../hooks/useGlobalSearch";
 import { getImageSource } from "../utils/imageLoader";
+import { useEffect, useRef } from "react";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const isMobile = SCREEN_WIDTH < 768;
+const isSmallMobile = SCREEN_WIDTH < 400;
 
 // Store image with multiple fallback paths
 const getStoreImageSource = () => {
@@ -103,6 +108,88 @@ const getTelephoneImageSource = () => {
 
 const telephoneImageSource = getTelephoneImageSource();
 
+// Infinite Scrolling Banner Component
+const ScrollingBanner = () => {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const bannerText = "KALİTELİ ÜRÜN * HIZLI SERVİS * GÜVENİLİR HİZMET";
+  // Create longer repeated text to ensure seamless scroll and no ellipsis
+  const repeatedText = `${bannerText} * ${bannerText} * ${bannerText} * ${bannerText} * ${bannerText} * ${bannerText} * ${bannerText} * ${bannerText} *`;
+
+  useEffect(() => {
+    // Create infinite scroll animation
+    const startAnimation = () => {
+      translateX.setValue(0);
+      Animated.loop(
+        Animated.timing(translateX, {
+          toValue: -SCREEN_WIDTH, // Move left by screen width (one banner copy)
+          duration: 20000, // 20 seconds for smooth scroll
+          useNativeDriver: true,
+        }),
+        { iterations: -1 } // Infinite loop
+      ).start();
+    };
+
+    startAnimation();
+  }, [translateX]);
+
+  return (
+    <View style={{ 
+      position: "relative", 
+      height: isMobile ? 40 : 50, 
+      overflow: "hidden",
+      backgroundColor: "#1e40af", // Blue color
+      transform: [{ rotate: "-2deg" }], // Diagonal angle
+      marginTop: isMobile ? 12 : 20, // Responsive margin
+      marginBottom: isMobile ? 24 : 32, // Responsive margin
+      marginHorizontal: isMobile ? -16 : -20, // Responsive margin
+    }}>
+      <Animated.View
+        style={{
+          flexDirection: "row",
+          transform: [{ translateX }],
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          alignItems: "center",
+          paddingVertical: isMobile ? 8 : 12,
+        }}
+      >
+        {/* First copy - single line, no ellipsis */}
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: isMobile ? 16 : 20, minWidth: SCREEN_WIDTH }}>
+          <Text
+            style={{
+              fontSize: isMobile ? (isSmallMobile ? 12 : 14) : 18,
+              fontWeight: "800",
+              color: "#ffffff",
+              letterSpacing: isMobile ? 0.5 : 1,
+            }}
+            numberOfLines={1}
+            ellipsizeMode="clip"
+          >
+            {repeatedText}
+          </Text>
+        </View>
+        {/* Second copy for seamless loop - single line, no ellipsis */}
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: isMobile ? 16 : 20, minWidth: SCREEN_WIDTH }}>
+          <Text
+            style={{
+              fontSize: isMobile ? (isSmallMobile ? 12 : 14) : 18,
+              fontWeight: "800",
+              color: "#ffffff",
+              letterSpacing: isMobile ? 0.5 : 1,
+            }}
+            numberOfLines={1}
+            ellipsizeMode="clip"
+          >
+            {repeatedText}
+          </Text>
+        </View>
+      </Animated.View>
+    </View>
+  );
+};
+
 const CategoryCard = ({ title, subtitle, href, image }) => {
   // Handle both string paths and image source objects
   const imageSource = typeof image === 'object' && image !== null 
@@ -111,8 +198,13 @@ const CategoryCard = ({ title, subtitle, href, image }) => {
     
   return (
     <Link href={href} asChild>
-      <Pressable style={{ marginBottom: 24 }}>
-        <View style={{ position: "relative", borderRadius: 28, overflow: "hidden", height: 220 }}>
+      <Pressable style={{ marginBottom: isMobile ? 20 : 24 }}>
+        <View style={{ 
+          position: "relative", 
+          borderRadius: isMobile ? 20 : 28, 
+          overflow: "hidden", 
+          height: isMobile ? (isSmallMobile ? 160 : 180) : 220 
+        }}>
           <Image
             source={imageSource}
             style={{ width: "100%", height: "100%" }}
@@ -131,16 +223,16 @@ const CategoryCard = ({ title, subtitle, href, image }) => {
             bottom: 0,
             left: 0,
             right: 0,
-            padding: 24,
+            padding: isMobile ? (isSmallMobile ? 16 : 20) : 24,
             backgroundColor: "rgba(15,23,42,0.5)",
           }}
         >
           <Text
             style={{
-              fontSize: 26,
+              fontSize: isMobile ? (isSmallMobile ? 20 : 22) : 26,
               fontWeight: "800",
               color: "#ffffff",
-              marginBottom: 6,
+              marginBottom: isMobile ? 4 : 6,
               letterSpacing: -0.5,
             }}
           >
@@ -148,9 +240,9 @@ const CategoryCard = ({ title, subtitle, href, image }) => {
           </Text>
           <Text
             style={{
-              fontSize: 14,
+              fontSize: isMobile ? (isSmallMobile ? 12 : 13) : 14,
               color: "#e2e8f0",
-              lineHeight: 20,
+              lineHeight: isMobile ? 18 : 20,
               fontWeight: "500",
             }}
           >
@@ -168,11 +260,22 @@ export default function HomeScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      contentContainerStyle={{ padding: isMobile ? (isSmallMobile ? 12 : 16) : 20, paddingBottom: isMobile ? 32 : 40 }}
       style={{ backgroundColor: "#f9fafb" }}
     >
+      {/* Infinite Scrolling Banner - Between search and hero section */}
+      <ScrollingBanner />
+
       {/* Hero Section - Store Image */}
-      <View style={{ position: "relative", borderRadius: 32, overflow: "hidden", marginBottom: 32, height: 320, backgroundColor: "#1e293b" }}>
+      <View style={{ 
+        position: "relative", 
+        borderRadius: isMobile ? 24 : 32, 
+        overflow: "hidden", 
+        marginBottom: isMobile ? 24 : 32, 
+        marginTop: isMobile ? 4 : 8, 
+        height: isMobile ? (isSmallMobile ? 220 : 260) : 320, 
+        backgroundColor: "#1e293b" 
+      }}>
         <Image
           source={storeImageSource}
           style={{ width: "100%", height: "100%" }}
@@ -191,16 +294,16 @@ export default function HomeScreen() {
             bottom: 0,
             left: 0,
             right: 0,
-            padding: 32,
+            padding: isMobile ? (isSmallMobile ? 20 : 24) : 32,
             backgroundColor: "rgba(15,23,42,0.5)",
           }}
         >
           <Text
             style={{
-              fontSize: 36,
+              fontSize: isMobile ? (isSmallMobile ? 24 : 28) : 36,
               fontWeight: "900",
               color: "#ffffff",
-              marginBottom: 12,
+              marginBottom: isMobile ? 8 : 12,
               letterSpacing: -1,
             }}
           >
@@ -208,9 +311,9 @@ export default function HomeScreen() {
           </Text>
           <Text
             style={{
-              fontSize: 16,
+              fontSize: isMobile ? (isSmallMobile ? 13 : 14) : 16,
               color: "#cbd5e1",
-              lineHeight: 24,
+              lineHeight: isMobile ? 20 : 24,
               fontWeight: "500",
             }}
           >
@@ -241,27 +344,67 @@ export default function HomeScreen() {
         image={telephoneImageSource}
       />
 
-      {/* Feature Cards - Side by Side */}
-      <View style={{ flexDirection: "row", marginTop: 8 }}>
-        <View style={{ flex: 1, padding: 20, backgroundColor: "#f8fafc", borderRadius: 20, marginRight: 6 }}>
-          <Text style={{ fontSize: 28, marginBottom: 12 }}>🚚</Text>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a", marginBottom: 8, letterSpacing: -0.3 }}>
+      {/* Feature Cards - Side by Side on desktop, stacked on mobile */}
+      <View style={{ 
+        flexDirection: isMobile ? "column" : "row", 
+        marginTop: isMobile ? 4 : 8,
+        gap: isMobile ? 12 : 0,
+      }}>
+        <View style={{ 
+          flex: 1, 
+          padding: isMobile ? (isSmallMobile ? 16 : 18) : 20, 
+          backgroundColor: "#f8fafc", 
+          borderRadius: isMobile ? 16 : 20, 
+          marginRight: isMobile ? 0 : 6,
+          marginBottom: isMobile ? 0 : 0,
+        }}>
+          <Text style={{ fontSize: isMobile ? (isSmallMobile ? 24 : 26) : 28, marginBottom: isMobile ? 10 : 12 }}>🚚</Text>
+          <Text style={{ 
+            fontSize: isMobile ? (isSmallMobile ? 16 : 17) : 18, 
+            fontWeight: "700", 
+            color: "#0f172a", 
+            marginBottom: isMobile ? 6 : 8, 
+            letterSpacing: -0.3 
+          }}>
             Teslimat Bilgileri
           </Text>
-          <Text style={{ fontSize: 14, color: "#475569", lineHeight: 20, fontWeight: "500" }}>
+          <Text style={{ 
+            fontSize: isMobile ? (isSmallMobile ? 12 : 13) : 14, 
+            color: "#475569", 
+            lineHeight: isMobile ? 18 : 20, 
+            fontWeight: "500" 
+          }}>
             Aynı gün teslimat • Min. 150 TL • Şehir merkezi
           </Text>
         </View>
-        <View style={{ flex: 1, padding: 20, backgroundColor: "#f8fafc", borderRadius: 20, marginLeft: 6 }}>
-          <Text style={{ fontSize: 28, marginBottom: 12 }}>⭐</Text>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a", marginBottom: 8, letterSpacing: -0.3 }}>
+        <View style={{ 
+          flex: 1, 
+          padding: isMobile ? (isSmallMobile ? 16 : 18) : 20, 
+          backgroundColor: "#f8fafc", 
+          borderRadius: isMobile ? 16 : 20, 
+          marginLeft: isMobile ? 0 : 6 
+        }}>
+          <Text style={{ fontSize: isMobile ? (isSmallMobile ? 24 : 26) : 28, marginBottom: isMobile ? 10 : 12 }}>⭐</Text>
+          <Text style={{ 
+            fontSize: isMobile ? (isSmallMobile ? 16 : 17) : 18, 
+            fontWeight: "700", 
+            color: "#0f172a", 
+            marginBottom: isMobile ? 6 : 8, 
+            letterSpacing: -0.3 
+          }}>
             Neden Buzdağı Plus?
           </Text>
-          <Text style={{ fontSize: 14, color: "#475569", lineHeight: 20, fontWeight: "500" }}>
+          <Text style={{ 
+            fontSize: isMobile ? (isSmallMobile ? 12 : 13) : 14, 
+            color: "#475569", 
+            lineHeight: isMobile ? 18 : 20, 
+            fontWeight: "500" 
+          }}>
             Hızlı teslimat • Geniş ürün yelpazesi • Güvenilir hizmet
           </Text>
         </View>
       </View>
+
     </ScrollView>
   );
 }

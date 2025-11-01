@@ -1,9 +1,13 @@
 import { Stack, useRouter, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, Text, Pressable, TextInput } from "react-native";
+import { View, Text, Pressable, TextInput, Dimensions } from "react-native";
 import { useState } from "react";
 import React from "react";
 import { SearchProvider, useSearch } from "../contexts/SearchContext";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const isMobile = SCREEN_WIDTH < 768;
+const isSmallMobile = SCREEN_WIDTH < 400;
 
 function BrandTitle() {
   const router = useRouter();
@@ -27,10 +31,20 @@ function BrandTitle() {
       style={{ flex: 1, alignItems: "center" }}
     >
       <View style={{ flexDirection: "column", alignItems: "center" }}>
-        <Text style={{ fontSize: 22, fontWeight: "700", color: "#111827", letterSpacing: -0.5 }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 18 : 20) : 22, 
+          fontWeight: "700", 
+          color: "#111827", 
+          letterSpacing: -0.5 
+        }}>
           Buzdağı Plus
         </Text>
-        <Text style={{ fontSize: 11, color: "#6b7280", marginTop: 2, letterSpacing: 0.5 }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 9 : 10) : 11, 
+          color: "#6b7280", 
+          marginTop: 2, 
+          letterSpacing: 0.5 
+        }}>
           SU & İÇECEK TESLİMATI
         </Text>
       </View>
@@ -46,13 +60,19 @@ function HeaderActions() {
       <Pressable
         onPress={() => router.push("/about")}
         style={{
-          paddingVertical: 8,
-          paddingHorizontal: 14,
+          paddingVertical: isMobile ? 6 : 8,
+          paddingHorizontal: isMobile ? (isSmallMobile ? 10 : 12) : 14,
           borderRadius: 8,
           backgroundColor: "#111827",
         }}
       >
-        <Text style={{ color: "#fff", fontWeight: "600", fontSize: 13 }}>İletişim</Text>
+        <Text style={{ 
+          color: "#fff", 
+          fontWeight: "600", 
+          fontSize: isMobile ? (isSmallMobile ? 11 : 12) : 13 
+        }}>
+          İletişim
+        </Text>
       </Pressable>
     </View>
   );
@@ -147,20 +167,22 @@ function SearchBar() {
   
   return (
     <View style={{ 
-      paddingHorizontal: 20, 
-      paddingVertical: 12, 
+      paddingHorizontal: isMobile ? (isSmallMobile ? 12 : 16) : 20, 
+      paddingVertical: isMobile ? 10 : 12, 
       backgroundColor: "#ffffff", 
       borderBottomWidth: 1, 
       borderBottomColor: "#e5e7eb",
+      position: "relative",
+      zIndex: 10, // Keep search bar above banner
     }}>
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           backgroundColor: "#f9fafb",
-          borderRadius: 12,
-          paddingHorizontal: 16,
-          paddingVertical: 12,
+          borderRadius: isMobile ? 10 : 12,
+          paddingHorizontal: isMobile ? (isSmallMobile ? 12 : 14) : 16,
+          paddingVertical: isMobile ? 10 : 12,
           borderWidth: 1,
           borderColor: "#e5e7eb",
         }}
@@ -170,18 +192,24 @@ function SearchBar() {
           }
         }}
       >
-        <Text style={{ fontSize: 16, marginRight: 10, color: "#9ca3af" }}>🔍</Text>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 14 : 15) : 16, 
+          marginRight: isMobile ? 8 : 10, 
+          color: "#9ca3af" 
+        }}>
+          🔍
+        </Text>
         <TextInput
           ref={inputRef}
           style={{ 
             flex: 1, 
-            fontSize: 15, 
+            fontSize: isMobile ? (isSmallMobile ? 14 : 15) : 15, 
             color: "#111827", 
             caretColor: "#111827",
             outline: "none",
             padding: 0,
             margin: 0,
-            minHeight: 24,
+            minHeight: isMobile ? 20 : 24,
             borderWidth: 0,
             backgroundColor: "transparent",
           }}
@@ -246,24 +274,24 @@ function SearchBar() {
 }
 
 function CustomHeader() {
-  return (
-    <View>
-      <View style={{ 
-        flexDirection: "row", 
-        alignItems: "center", 
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: "#ffffff",
-        borderBottomWidth: 1,
-        borderBottomColor: "#e5e7eb",
-      }}>
-        <BrandTitle />
-        <HeaderActions />
-      </View>
-      <SearchBar />
-    </View>
-  );
-}
+      return (
+        <View>
+          <View style={{ 
+            flexDirection: "row", 
+            alignItems: "center", 
+            paddingHorizontal: isMobile ? (isSmallMobile ? 12 : 16) : 20,
+            paddingVertical: isMobile ? 12 : 16,
+            backgroundColor: "#ffffff",
+            borderBottomWidth: 1,
+            borderBottomColor: "#e5e7eb",
+          }}>
+            <BrandTitle />
+            <HeaderActions />
+          </View>
+          <SearchBar />
+        </View>
+      );
+    }
 
 export default function RootLayout() {
   const [searchQuery, setSearchQuery] = useState("");

@@ -1,15 +1,19 @@
-import { Linking, ScrollView, Text, View, Pressable } from "react-native";
+import { Linking, ScrollView, Text, View, Pressable, Dimensions } from "react-native";
+
+const { width } = Dimensions.get("window");
+const isMobile = width < 768;
+const isSmallMobile = width < 400;
 
 const InfoCard = ({ title, value, icon, onPress }) => (
   <Pressable
     onPress={onPress}
     style={{
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: isMobile ? 10 : 12,
+      padding: isMobile ? (isSmallMobile ? 12 : 14) : 16,
       backgroundColor: "#ffffff",
       borderWidth: 1,
       borderColor: "#e5e7eb",
-      marginBottom: 12,
+      marginBottom: isMobile ? 10 : 12,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
@@ -18,12 +22,26 @@ const InfoCard = ({ title, value, icon, onPress }) => (
     }}
   >
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      <Text style={{ fontSize: 20, marginRight: 12 }}>{icon}</Text>
+      <Text style={{ 
+        fontSize: isMobile ? (isSmallMobile ? 18 : 19) : 20, 
+        marginRight: isMobile ? 10 : 12 
+      }}>
+        {icon}
+      </Text>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 12, color: "#6b7280", marginBottom: 4, fontWeight: "500" }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 11 : 11) : 12, 
+          color: "#6b7280", 
+          marginBottom: isMobile ? 3 : 4, 
+          fontWeight: "500" 
+        }}>
           {title}
         </Text>
-        <Text style={{ fontSize: 15, color: "#111827", fontWeight: "600" }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 13 : 14) : 15, 
+          color: "#111827", 
+          fontWeight: "600" 
+        }}>
           {value}
         </Text>
       </View>
@@ -35,10 +53,10 @@ const ActionButton = ({ icon, title, subtitle, onPress }) => (
   <Pressable
     onPress={onPress}
     style={{
-      borderRadius: 12,
-      padding: 18,
+      borderRadius: isMobile ? 10 : 12,
+      padding: isMobile ? (isSmallMobile ? 14 : 16) : 18,
       backgroundColor: "#111827",
-      marginBottom: 12,
+      marginBottom: isMobile ? 10 : 12,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
@@ -47,23 +65,36 @@ const ActionButton = ({ icon, title, subtitle, onPress }) => (
     }}
   >
     <View style={{ flexDirection: "row", alignItems: "center" }}>
-      <Text style={{ fontSize: 24, marginRight: 12 }}>{icon}</Text>
+      <Text style={{ 
+        fontSize: isMobile ? (isSmallMobile ? 20 : 22) : 24, 
+        marginRight: isMobile ? 10 : 12 
+      }}>
+        {icon}
+      </Text>
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            fontSize: 16,
+            fontSize: isMobile ? (isSmallMobile ? 14 : 15) : 16,
             fontWeight: "600",
             color: "#ffffff",
-            marginBottom: 4,
+            marginBottom: isMobile ? 3 : 4,
           }}
         >
           {title}
         </Text>
-        <Text style={{ fontSize: 13, color: "#d1d5db" }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 11 : 12) : 13, 
+          color: "#d1d5db" 
+        }}>
           {subtitle}
         </Text>
       </View>
-      <Text style={{ fontSize: 20, color: "#ffffff" }}>→</Text>
+      <Text style={{ 
+        fontSize: isMobile ? (isSmallMobile ? 18 : 19) : 20, 
+        color: "#ffffff" 
+      }}>
+        →
+      </Text>
     </View>
   </Pressable>
 );
@@ -71,24 +102,36 @@ const ActionButton = ({ icon, title, subtitle, onPress }) => (
 export default function AboutScreen() {
   return (
     <ScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+      contentContainerStyle={{ 
+        padding: isMobile ? (isSmallMobile ? 12 : 16) : 20, 
+        paddingBottom: isMobile ? 32 : 40 
+      }}
       style={{ backgroundColor: "#f9fafb" }}
     >
       {/* Header Section */}
       <View
         style={{
-          borderRadius: 12,
-          padding: 24,
+          borderRadius: isMobile ? 10 : 12,
+          padding: isMobile ? (isSmallMobile ? 18 : 20) : 24,
           backgroundColor: "#ffffff",
           borderWidth: 1,
           borderColor: "#e5e7eb",
-          marginBottom: 24,
+          marginBottom: isMobile ? 20 : 24,
         }}
       >
-        <Text style={{ fontSize: 24, fontWeight: "700", color: "#111827", marginBottom: 12 }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 20 : 22) : 24, 
+          fontWeight: "700", 
+          color: "#111827", 
+          marginBottom: isMobile ? 10 : 12 
+        }}>
           İletişim
         </Text>
-        <Text style={{ fontSize: 15, color: "#6b7280", lineHeight: 22 }}>
+        <Text style={{ 
+          fontSize: isMobile ? (isSmallMobile ? 13 : 14) : 15, 
+          color: "#6b7280", 
+          lineHeight: isMobile ? 20 : 22 
+        }}>
           Su ve içecek siparişleriniz için bize ulaşın. Hızlı teslimat ve güvenilir hizmet sunuyoruz.
         </Text>
       </View>
